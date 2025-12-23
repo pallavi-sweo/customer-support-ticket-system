@@ -27,6 +27,7 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(auth_router, prefix="/auth", tags=["auth"])
+    app.include_router(tickets_router, prefix="/tickets", tags=["tickets"])
 
     @app.on_event("startup")
     def _startup() -> None:

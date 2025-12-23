@@ -15,4 +15,3 @@ class User(Base):
     created_at: Mapped[str] = mapped_column(DateTime(timezone=False), server_default=func.now())
 
     tickets = relationship("Ticket", back_populates="creator", cascade="all, delete-orphan")
-    

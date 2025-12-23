@@ -7,7 +7,7 @@ PRIORITY_PATTERN = "^(LOW|MEDIUM|HIGH)$"
 
 
 class TicketCreate(BaseModel):
-    subject: str = Field(min_length=5, max_length=200)
+    subject: str = Field(min_length=1, max_length=200)
     description: str = Field(min_length=10, max_length=5000)
     priority: str = Field(pattern=PRIORITY_PATTERN)
 

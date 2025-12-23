@@ -11,7 +11,9 @@ from app.utils.pagination import Page
 
 @log_call(logger_name="app.crud.tickets")
 @db_timed(threshold_ms=15)
-def create_ticket(db: Session, user_id: int, subject: str, description: str, priority: str) -> Ticket:
+def create_ticket(
+    db: Session, user_id: int, subject: str, description: str, priority: str
+) -> Ticket:
     t = Ticket(user_id=user_id, subject=subject, description=description, priority=priority)
     db.add(t)
     db.commit()

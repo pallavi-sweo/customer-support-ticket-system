@@ -21,7 +21,11 @@ class Ticket(Base):
     status: Mapped[str] = mapped_column(String(20), index=True, nullable=False, default="OPEN")
     priority: Mapped[str] = mapped_column(String(20), index=True, nullable=False, default="MEDIUM")
 
-    created_at: Mapped[str] = mapped_column(DateTime(timezone=False), server_default=func.now(), index=True)
-    updated_at: Mapped[str] = mapped_column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now())
+    created_at: Mapped[str] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), index=True
+    )
+    updated_at: Mapped[str] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), onupdate=func.now()
+    )
 
     creator = relationship("User", back_populates="tickets")
