@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.auth import router as auth_router
+from app.api.routes.tickets import router as tickets_router
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.db.session import init_db
