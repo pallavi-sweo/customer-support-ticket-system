@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import settings
 from app.db.base import Base
-from app.models import user, ticket  # noqa: F401  # ensure models imported for metadata
+from app.models import user, ticket, reply  # noqa: F401  # ensure models imported for metadata
 from app.core.decorators import db_timed
 
 logger = logging.getLogger("app.db.session")

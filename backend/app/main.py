@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.auth import router as auth_router
 from app.api.routes.tickets import router as tickets_router
+from app.api.routes.replies import router as replies_router
+from app.api.routes.admin import router as admin_router
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.db.session import init_db
@@ -28,6 +30,8 @@ def create_app() -> FastAPI:
 
     app.include_router(auth_router, prefix="/auth", tags=["auth"])
     app.include_router(tickets_router, prefix="/tickets", tags=["tickets"])
+    app.include_router(replies_router, tags=["replies"])
+    app.include_router(admin_router, prefix="/admin", tags=["admin"])
 
     @app.on_event("startup")
     def _startup() -> None:

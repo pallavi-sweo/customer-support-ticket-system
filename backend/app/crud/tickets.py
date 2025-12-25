@@ -5,6 +5,7 @@ from sqlalchemy import and_, desc, func, select
 from sqlalchemy.orm import Session
 
 from app.core.decorators import db_timed, log_call
+from app.core.transitions import validate_transition
 from app.models.ticket import Ticket
 from app.utils.pagination import Page
 
@@ -69,3 +70,14 @@ def list_tickets(
     ).all()
 
     return items, total
+
+
+@log_call(logger_name="app.crud.tickets")
+@db_timed(threshold_ms=20)
+def update_ticket_status(db: Session, ticket: Ticket, new_status: str) -> Ticket:
+    validate_transition(ticket.status, new_status)
+    ticket.status = new_status
+    db.add(ticket)
+    db.commit()
+    db.refresh(ticket)
+    return ticket

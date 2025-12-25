@@ -29,3 +29,4 @@ class Ticket(Base):
     )
 
     creator = relationship("User", back_populates="tickets")
+    replies = relationship("TicketReply", back_populates="ticket", cascade="all, delete-orphan")
