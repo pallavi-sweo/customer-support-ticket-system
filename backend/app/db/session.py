@@ -5,13 +5,17 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import settings
 from app.db.base import Base
-from app.models import user, ticket, reply  # noqa: F401  # ensure models imported for metadata
+from app.models import (
+    user,
+    ticket,
+    reply,
+)  # noqa: F401  # ensure models imported for metadata
 from app.core.decorators import db_timed
 
 logger = logging.getLogger("app.db.session")
 
 engine = create_engine(
-    settings.database_url,
+    settings.resolved_database_url,
     pool_pre_ping=True,
 )
 
@@ -48,7 +52,9 @@ def _bootstrap_admin_if_configured() -> None:
     from app.core.security import hash_password
 
     with SessionLocal() as db:
-        existing = db.scalar(select(User).where(User.email == settings.bootstrap_admin_email))
+        existing = db.scalar(
+            select(User).where(User.email == settings.bootstrap_admin_email)
+        )
         if existing:
             return
 

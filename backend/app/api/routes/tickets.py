@@ -30,7 +30,8 @@ def create_ticket_api(
     if current_user.role != "USER":
         # spec: users create tickets
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Only customers can create tickets"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only customers can create tickets",
         )
 
     t = create_ticket(
@@ -81,7 +82,9 @@ def get_ticket_api(
 ):
     t = get_ticket(db, ticket_id)
     if not t:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found"
+        )
 
     _ensure_ticket_access(t.user_id, current_user)
     return t

@@ -18,8 +18,12 @@ class Ticket(Base):
     description: Mapped[str] = mapped_column(Text, nullable=False)
 
     # Use strings for speed and MySQL compatibility; validate via Pydantic on input.
-    status: Mapped[str] = mapped_column(String(20), index=True, nullable=False, default="OPEN")
-    priority: Mapped[str] = mapped_column(String(20), index=True, nullable=False, default="MEDIUM")
+    status: Mapped[str] = mapped_column(
+        String(20), index=True, nullable=False, default="OPEN"
+    )
+    priority: Mapped[str] = mapped_column(
+        String(20), index=True, nullable=False, default="MEDIUM"
+    )
 
     created_at: Mapped[str] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), index=True
@@ -29,4 +33,6 @@ class Ticket(Base):
     )
 
     creator = relationship("User", back_populates="tickets")
-    replies = relationship("TicketReply", back_populates="ticket", cascade="all, delete-orphan")
+    replies = relationship(
+        "TicketReply", back_populates="ticket", cascade="all, delete-orphan"
+    )

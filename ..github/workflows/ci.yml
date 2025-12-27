@@ -1,0 +1,3 @@
+black --check
+flake8
+pytest -q

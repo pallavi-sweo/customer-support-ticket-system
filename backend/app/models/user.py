@@ -8,10 +8,16 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    email: Mapped[str] = mapped_column(
+        String(255), unique=True, index=True, nullable=False
+    )
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(20), nullable=False, default="USER")
 
-    created_at: Mapped[str] = mapped_column(DateTime(timezone=False), server_default=func.now())
+    created_at: Mapped[str] = mapped_column(
+        DateTime(timezone=False), server_default=func.now()
+    )
 
-    tickets = relationship("Ticket", back_populates="creator", cascade="all, delete-orphan")
+    tickets = relationship(
+        "Ticket", back_populates="creator", cascade="all, delete-orphan"
+    )

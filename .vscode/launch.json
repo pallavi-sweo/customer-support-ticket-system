@@ -1,0 +1,21 @@
+{
+  //https://github.com/ArjanCodes/examples/blob/main/2024/debug_fastapi/.vscode/launch.json
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug FastAPI (uvicorn, conda)",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["app.main:app", "--reload"],
+      "cwd": "${workspaceFolder}/backend",
+      "envFile": "${workspaceFolder}/backend/.env",
+      "justMyCode": true,
+      "serverReadyAction": {
+        "pattern": "Uvicorn running on http://127\\.0\\.0\\.1:([0-9]+)",
+        "uriFormat": "http://127.0.0.1:%s/docs",
+        "action": "openExternally"
+      }
+    }
+  ]
+}

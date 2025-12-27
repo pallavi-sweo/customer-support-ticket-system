@@ -15,7 +15,9 @@ router = APIRouter()
 def signup(payload: UserCreate, db: Session = Depends(get_db)):
     existing = get_user_by_email(db, email=payload.email)
     if existing:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Email already registered"
+        )
 
     user = create_user(db, email=payload.email, password=payload.password, role="USER")
     return user
@@ -26,7 +28,9 @@ def signup(payload: UserCreate, db: Session = Depends(get_db)):
 def login(payload: UserCreate, db: Session = Depends(get_db)):
     user = get_user_by_email(db, email=payload.email)
     if not user or not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
+        )
 
     token = create_access_token(subject=user.email, role=user.role)
     return TokenOut(access_token=token, role=user.role)

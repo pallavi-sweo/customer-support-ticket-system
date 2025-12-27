@@ -1,26 +1,66 @@
-# customer-support-ticket-system
-To build a Customer Support Ticket System similar to tools like Freshdesk / Zendesk (lite version)
+# Customer Support Ticket System (FastAPI + MySQL + Streamlit)
 
-mysql -u root -p
-CREATE DATABASE tickets_db;
-show databases;
-CREATE USER 'tickets_user'@'localhost' IDENTIFIED BY 'tickets_pass';
-GRANT ALL PRIVILEGES ON tickets_db.* TO 'tickets_user'@'localhost';
-FLUSH PRIVILEGES;
+## Tech Stack
+- Backend: Python FastAPI
+- ORM: SQLAlchemy 2.0
+- Auth: JWT (bcrypt password hashing)
+- DB: MySQL
+- Frontend: Streamlit
+- Quality: black, flake8, pylint, pytest
 
-Apis:
-/signup & /login completed
-Execution steps:
-cd backend
-uvicorn app.main:app --reload
+## Features
+- User signup/login
+- Create and view tickets (RBAC enforced)
+- Ticket listing with pagination + filters
+- Replies thread per ticket
+- Admin-only status update with strict transitions
 
+## Roles
+- USER (Customer): create tickets, view own tickets, reply to own tickets
+- ADMIN (Support Agent): view all tickets, reply to any, update ticket status
 
-USE tickets_db;
-SHOW TABLES;
-DESCRIBE users;
-select * from users;
+## Ticket Status Workflow
+- OPEN -> IN_PROGRESS or CLOSED
+- IN_PROGRESS -> RESOLVED or CLOSED
+- RESOLVED -> CLOSED
+- CLOSED is terminal
 
-pytest or python -m pytest -q
-black .
-flake8 .
-pylint app
+## Database Schema (SQL)
+### users
+- id (PK)
+- email (unique, indexed)
+- password_hash
+- role
+- created_at
+
+### tickets
+- id (PK)
+- user_id (FK -> users.id)
+- subject
+- description
+- status (indexed)
+- priority
+- created_at (indexed)
+- updated_at
+
+### ticket_replies
+- id (PK)
+- ticket_id (FK -> tickets.id)
+- author_id (FK -> users.id)
+- message
+- created_at (indexed)
+
+Indexes:
+- tickets.status, tickets.created_at
+
+## Setup
+
+### Backend
+1. Create `.env` in `backend/`:
+   - DATABASE_URL=mysql+pymysql://user:pass@localhost:3306/tickets_db
+   - JWT_SECRET=...
+   - (optional) BOOTSTRAP_ADMIN_EMAIL, BOOTSTRAP_ADMIN_PASSWORD
+2. Install deps:
+   ```bash
+   cd backend
+   pip install -r requirements.txt

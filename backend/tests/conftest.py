@@ -7,6 +7,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.main import create_app
 from app.db.base import Base
+from app.db.session import get_db
 import app.models  # noqa: F401  (imports models to register metadata)
 
 from app.core.deps import get_db  # <-- adjust if your get_db is in a different module
@@ -40,10 +41,23 @@ def override_get_db():
         db.close()
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def client():
+    # Create tables fresh per test
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+
     app = create_app()
     app.dependency_overrides[get_db] = override_get_db
 
     with TestClient(app) as c:
         yield c
+
+
+@pytest.fixture(scope="function")
+def db_session():
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

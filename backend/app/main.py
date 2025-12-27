@@ -11,6 +11,8 @@ from app.api.routes.admin import router as admin_router
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.db.session import init_db
+from app.core.exception_handlers import add_exception_handlers
+from app.core.middleware import request_id_middleware
 
 logger = logging.getLogger("app")
 
@@ -44,3 +46,5 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
+add_exception_handlers(app)
+app.middleware("http")(request_id_middleware)

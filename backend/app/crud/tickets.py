@@ -15,7 +15,9 @@ from app.utils.pagination import Page
 def create_ticket(
     db: Session, user_id: int, subject: str, description: str, priority: str
 ) -> Ticket:
-    t = Ticket(user_id=user_id, subject=subject, description=description, priority=priority)
+    t = Ticket(
+        user_id=user_id, subject=subject, description=description, priority=priority
+    )
     db.add(t)
     db.commit()
     db.refresh(t)
@@ -66,7 +68,9 @@ def list_tickets(
     total = db.scalar(count_q) or 0
 
     items = db.scalars(
-        base_q.order_by(desc(Ticket.created_at)).offset(page.offset).limit(page.page_size)
+        base_q.order_by(desc(Ticket.created_at))
+        .offset(page.offset)
+        .limit(page.page_size)
     ).all()
 
     return items, total

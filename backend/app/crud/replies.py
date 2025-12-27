@@ -7,7 +7,9 @@ from app.models.reply import TicketReply
 
 @log_call(logger_name="app.crud.replies")
 @db_timed(threshold_ms=15)
-def create_reply(db: Session, ticket_id: int, author_id: int, message: str) -> TicketReply:
+def create_reply(
+    db: Session, ticket_id: int, author_id: int, message: str
+) -> TicketReply:
     r = TicketReply(ticket_id=ticket_id, author_id=author_id, message=message)
     db.add(r)
     db.commit()

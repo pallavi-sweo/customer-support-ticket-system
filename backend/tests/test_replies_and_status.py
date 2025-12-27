@@ -3,9 +3,9 @@ def _signup(client, email, password="password123"):
 
 
 def _login(client, email, password="password123"):
-    return client.post("/auth/login", json={"email": email, "password": password}).json()[
-        "access_token"
-    ]
+    return client.post(
+        "/auth/login", json={"email": email, "password": password}
+    ).json()["access_token"]
 
 
 def _create_ticket(client, token, i=1):
@@ -59,7 +59,7 @@ def test_user_cannot_reply_to_others_ticket(client):
     assert r.status_code == 403
 
 
-def test_admin_can_update_status_with_valid_transitions(client):
+def test_admin_can_update_status_with_valid_transitions(client, db_session):
     # Create admin via signup then manually elevate role is not supported.
     # For tests we call signup then directly login, and assume role=USER.
     # So, we simulate admin by setting bootstrap env in real app, but in tests we need a way.
@@ -72,16 +72,15 @@ def test_admin_can_update_status_with_valid_transitions(client):
     from app.db import session as session_module
 
     # Access the override DB session generator by calling it once
-    override_gen = session_module.get_db()
-    db = next(override_gen)
-    try:
+    existing = db_session.scalar(select(User).where(User.email == "admin@example.com"))
+    if not existing:
         admin = User(
-            email="admin@example.com", password_hash=hash_password("admin12345"), role="ADMIN"
+            email="admin@example.com",
+            password_hash=hash_password("admin12345"),
+            role="ADMIN",
         )
-        db.add(admin)
-        db.commit()
-    finally:
-        db.close()
+        db_session.add(admin)
+        db_session.commit()
 
     # Login as admin (login expects JSON in your Day1 setup)
     admin_token = client.post(
@@ -120,20 +119,20 @@ def test_admin_can_update_status_with_valid_transitions(client):
     assert r3.json()["status"] == "CLOSED"
 
 
-def test_invalid_transition_returns_400(client):
+def test_invalid_transition_returns_400(client, db_session):
     from app.core.security import hash_password
     from app.models.user import User
-    from app.db import session as session_module
+    from sqlalchemy import select
 
-    db = next(session_module.get_db())
-    try:
+    existing = db_session.scalar(select(User).where(User.email == "admin2@example.com"))
+    if not existing:
         admin = User(
-            email="admin2@example.com", password_hash=hash_password("admin12345"), role="ADMIN"
+            email="admin2@example.com",
+            password_hash=hash_password("admin12345"),
+            role="ADMIN",
         )
-        db.add(admin)
-        db.commit()
-    finally:
-        db.close()
+        db_session.add(admin)
+        db_session.commit()
 
     admin_token = client.post(
         "/auth/login", json={"email": "admin2@example.com", "password": "admin12345"}

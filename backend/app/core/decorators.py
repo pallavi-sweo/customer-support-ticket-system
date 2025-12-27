@@ -25,7 +25,9 @@ def timed(
             result = func(*args, **kwargs)
             elapsed_ms = int((time.perf_counter() - start) * 1000)
             if elapsed_ms >= threshold_ms:
-                logger.info("slow_call func=%s elapsed_ms=%s", func.__name__, elapsed_ms)
+                logger.info(
+                    "slow_call func=%s elapsed_ms=%s", func.__name__, elapsed_ms
+                )
             return result
 
         return wrapper
@@ -33,7 +35,9 @@ def timed(
     return decorator
 
 
-def log_call(logger_name: str = "app.calls") -> Callable[[Callable[P, R]], Callable[P, R]]:
+def log_call(
+    logger_name: str = "app.calls",
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """
     Logs function entry/exit. Keep it for key service/CRUD methods (not everything).
     """
