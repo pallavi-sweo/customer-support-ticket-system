@@ -1,15 +1,13 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
-from app.domain.enums import TicketStatus, TicketPriority
 
-# Enums by regex pattern for simplicity
-PRIORITY_PATTERN = "^(LOW|MEDIUM|HIGH)$"
+from app.domain.enums import TicketPriority, TicketStatus
 
 
 class TicketCreate(BaseModel):
     subject: str = Field(min_length=1, max_length=200)
     description: str = Field(min_length=10, max_length=5000)
-    priority: TicketPriority = Field(pattern=PRIORITY_PATTERN)
+    priority: TicketPriority
 
 
 class TicketOut(BaseModel):

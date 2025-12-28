@@ -23,7 +23,7 @@ def update_status_api(
     ticket_id: int,
     payload: StatusUpdate,
     db: Session = Depends(get_db),
-    current_user = Depends(require_admin),
+    current_user=Depends(require_admin),
 ):
     updated = update_status_service(
         db=db,

@@ -1,23 +1,22 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.decorators import timed
 from app.core.deps import get_current_user
-from app.crud.tickets import create_ticket, get_ticket, list_tickets
 from app.db.session import get_db
 from app.schemas.ticket import TicketCreate, TicketListOut, TicketOut
+from app.domain.enums import TicketStatus, TicketPriority
 from app.utils.pagination import normalize_pagination
+from app.services.tickets_list_service import (
+    TicketFilters,
+    create_ticket_service,
+    get_ticket_service,
+    list_tickets_service,
+)
 
 router = APIRouter()
-
-
-def _ensure_ticket_access(ticket_user_id: int, current_user) -> None:
-    if current_user.role == "ADMIN":
-        return
-    if ticket_user_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
 
 @router.post("", response_model=TicketOut, status_code=status.HTTP_201_CREATED)
@@ -27,21 +26,13 @@ def create_ticket_api(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    if current_user.role != "USER":
-        # spec: users create tickets
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only customers can create tickets",
-        )
-
-    t = create_ticket(
-        db,
-        user_id=current_user.id,
+    return create_ticket_service(
+        db=db,
+        current_user=current_user,
         subject=payload.subject,
         description=payload.description,
         priority=payload.priority,
     )
-    return t
 
 
 @router.get("", response_model=TicketListOut)
@@ -51,24 +42,24 @@ def list_tickets_api(
     current_user=Depends(get_current_user),
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=50),
-    status_filter: str | None = Query(None, alias="status"),
-    priority: str | None = Query(None),
+    status_filter: TicketStatus | None = Query(None, alias="status"),
+    priority: TicketPriority | None = Query(None),
     created_from: datetime | None = Query(None),
     created_to: datetime | None = Query(None),
 ):
     pg = normalize_pagination(page, page_size)
-    is_admin = current_user.role == "ADMIN"
-
-    # Spec says filters for admin. For user, allowing filters is ok; RBAC still applies.
-    items, total = list_tickets(
-        db,
-        pg,
-        is_admin=is_admin,
-        user_id=current_user.id,
+    filters = TicketFilters(
         status=status_filter,
         priority=priority,
         created_from=created_from,
         created_to=created_to,
+    )
+
+    items, total = list_tickets_service(
+        db=db,
+        current_user=current_user,
+        page=pg,
+        filters=filters,
     )
     return TicketListOut(items=items, page=pg.page, page_size=pg.page_size, total=total)
 
@@ -80,11 +71,4 @@ def get_ticket_api(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    t = get_ticket(db, ticket_id)
-    if not t:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found"
-        )
-
-    _ensure_ticket_access(t.user_id, current_user)
-    return t
+    return get_ticket_service(db=db, ticket_id=ticket_id, current_user=current_user)

@@ -48,9 +48,14 @@ def list_tickets(
         filters.append(Ticket.user_id == user_id)
 
     if status:
-        filters.append(Ticket.status == status)
+        filters.append(
+            Ticket.status == (status.value if hasattr(status, "value") else status)
+        )
     if priority:
-        filters.append(Ticket.priority == priority)
+        filters.append(
+            Ticket.priority
+            == (priority.value if hasattr(priority, "value") else priority)
+        )
     if created_from:
         filters.append(Ticket.created_at >= created_from)
     if created_to:
@@ -68,7 +73,7 @@ def list_tickets(
     total = db.scalar(count_q) or 0
 
     items = db.scalars(
-        base_q.order_by(desc(Ticket.created_at))
+        base_q.order_by(desc(Ticket.created_at), desc(Ticket.id))
         .offset(page.offset)
         .limit(page.page_size)
     ).all()
