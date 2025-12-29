@@ -14,3 +14,10 @@ class ReplyOut(BaseModel):
     created_at: datetime | None = None
 
     model_config = {"from_attributes": True}
+
+
+class ReplyListOut(BaseModel):
+    items: list[ReplyOut]
+    total: int
+    page: int
+    page_size: int

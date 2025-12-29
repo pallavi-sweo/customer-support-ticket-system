@@ -1,4 +1,4 @@
-from sqlalchemy import asc, select
+from sqlalchemy import asc, select, func
 from sqlalchemy.orm import Session
 
 from app.core.decorators import db_timed, log_call
@@ -18,10 +18,22 @@ def create_reply(
 
 
 @db_timed(threshold_ms=15)
-def list_replies(db: Session, ticket_id: int) -> list[TicketReply]:
+def list_replies(
+    db: Session,
+    ticket_id: int,
+    page: int,
+    page_size: int,
+) -> tuple[list[TicketReply], int]:
+    base = select(TicketReply).where(TicketReply.ticket_id == ticket_id)
+
+    # total count
+    total = db.scalar(select(func.count()).select_from(base.subquery())) or 0
+
+    # stable ordering (thread order)
     q = (
-        select(TicketReply)
-        .where(TicketReply.ticket_id == ticket_id)
-        .order_by(asc(TicketReply.created_at))
+        base.order_by(asc(TicketReply.created_at), asc(TicketReply.id))
+        .offset((page - 1) * page_size)
+        .limit(page_size)
     )
-    return db.scalars(q).all()
+    items = db.scalars(q).all()
+    return items, total

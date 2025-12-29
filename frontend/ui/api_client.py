@@ -14,6 +14,7 @@ load_dotenv()
 class ApiError(Exception):
     status_code: int
     message: str
+    code: str | None = None
     details: Any | None = None
 
 
@@ -32,56 +33,72 @@ class ApiClient:
             headers["Authorization"] = f"Bearer {self.token}"
         return headers
 
+    def request(
+        self,
+        method: str,
+        path: str,
+        *,
+        json: Any | None = None,
+        params: dict[str, Any] | None = None,
+    ) -> Any:
+        url = f"{self.base_url}{path}"
+        resp = requests.request(
+            method=method,
+            url=url,
+            json=json,
+            params=params,
+            headers=self._headers(),
+            timeout=self.timeout,
+        )
+        return self._handle(resp)
+
     def _handle(self, resp: requests.Response) -> Any:
-        # Try JSON first
         try:
             data = resp.json()
         except Exception:  # noqa: BLE001
             data = resp.text
 
         if resp.status_code >= 400:
+            code = None
             message = None
+
             if isinstance(data, dict):
-                message = data.get("detail") or data.get("message")
+                # New domain error format: {"error": {"code": "...", "message": "..."}}
+                if "error" in data and isinstance(data["error"], dict):
+                    code = data["error"].get("code")
+                    message = data["error"].get("message")
+                # FastAPI default: {"detail": "..."}
+                message = message or data.get("detail") or data.get("message")
+
             raise ApiError(
-                status_code=resp.status_code, message=message or str(data), details=data
+                status_code=resp.status_code,
+                message=message or str(data),
+                code=code,
+                details=data,
             )
 
         return data
 
     # -------- Auth --------
     def signup(self, email: str, password: str) -> dict[str, Any]:
-        url = f"{self.base_url}/auth/signup"
-        resp = requests.post(
-            url,
-            json={"email": email, "password": password},
-            headers=self._headers(),
-            timeout=self.timeout,
+        return self.request(
+            "POST", "/auth/signup", json={"email": email, "password": password}
         )
-        return self._handle(resp)
 
     def login(self, email: str, password: str) -> dict[str, Any]:
-        url = f"{self.base_url}/auth/login"
-        resp = requests.post(
-            url,
-            json={"email": email, "password": password},
-            headers=self._headers(),
-            timeout=self.timeout,
+        return self.request(
+            "POST", "/auth/login", json={"email": email, "password": password}
         )
-        return self._handle(resp)
 
     # -------- Tickets --------
     def create_ticket(
         self, subject: str, description: str, priority: str
     ) -> dict[str, Any]:
-        url = f"{self.base_url}/tickets"
-        resp = requests.post(
-            url,
+        return self.request(
+            "POST",
+            "/tickets",
             json={"subject": subject, "description": description, "priority": priority},
-            headers=self._headers(),
-            timeout=self.timeout,
         )
-        return self._handle(resp)
 
     def list_tickets(
         self,
@@ -92,7 +109,6 @@ class ApiClient:
         created_from: str | None = None,
         created_to: str | None = None,
     ) -> dict[str, Any]:
-        url = f"{self.base_url}/tickets"
         params: dict[str, Any] = {"page": page, "page_size": page_size}
         if status:
             params["status"] = status
@@ -102,40 +118,31 @@ class ApiClient:
             params["created_from"] = created_from
         if created_to:
             params["created_to"] = created_to
-
-        resp = requests.get(
-            url, params=params, headers=self._headers(), timeout=self.timeout
-        )
-        return self._handle(resp)
+        return self.request("GET", "/tickets", params=params)
 
     def get_ticket(self, ticket_id: int) -> dict[str, Any]:
-        url = f"{self.base_url}/tickets/{ticket_id}"
-        resp = requests.get(url, headers=self._headers(), timeout=self.timeout)
-        return self._handle(resp)
+        return self.request("GET", f"/tickets/{ticket_id}")
 
     # -------- Replies --------
-    def list_replies(self, ticket_id: int) -> list[dict[str, Any]]:
-        url = f"{self.base_url}/tickets/{ticket_id}/replies"
-        resp = requests.get(url, headers=self._headers(), timeout=self.timeout)
-        return self._handle(resp)
+    def list_replies(
+        self, ticket_id: int, page: int = 1, page_size: int = 20
+    ) -> dict[str, Any]:
+        return self.request(
+            "GET",
+            f"/tickets/{ticket_id}/replies",
+            params={"page": page, "page_size": page_size},
+        )
 
     def create_reply(self, ticket_id: int, message: str) -> dict[str, Any]:
-        url = f"{self.base_url}/tickets/{ticket_id}/replies"
-        resp = requests.post(
-            url,
-            json={"message": message},
-            headers=self._headers(),
-            timeout=self.timeout,
+        return self.request(
+            "POST", f"/tickets/{ticket_id}/replies", json={"message": message}
         )
-        return self._handle(resp)
 
     # -------- Admin --------
     def update_status(self, ticket_id: int, status: str) -> dict[str, Any]:
-        url = f"{self.base_url}/admin/tickets/{ticket_id}/status"
-        resp = requests.put(
-            url, json={"status": status}, headers=self._headers(), timeout=self.timeout
+        return self.request(
+            "PUT", f"/admin/tickets/{ticket_id}/status", json={"status": status}
         )
-        return self._handle(resp)
 
 
 def get_api_base_url() -> str:
