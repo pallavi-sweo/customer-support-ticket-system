@@ -67,7 +67,9 @@ if st.session_state.get("role") == "ADMIN":
 
     status_options = ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"]
     current_status = ticket.get("status")
-    default_index = status_options.index(current_status) if current_status in status_options else 0
+    default_index = (
+        status_options.index(current_status) if current_status in status_options else 0
+    )
 
     new_status = st.selectbox("New Status", status_options, index=default_index)
 
@@ -147,13 +149,17 @@ else:
     for r in items:
         with st.container(border=True):
             created_at = r.get("created_at", "")
-            st.caption(f"Reply #{r['id']} | Author: {r['author_id']} | At: {created_at}")
+            st.caption(
+                f"Reply #{r['id']} | Author: {r['author_id']} | At: {created_at}"
+            )
             st.write(r["message"])
 
 # Simple Prev/Next
 nav_cols = st.columns([1, 1, 3])
 prev_disabled = st.session_state["replies_page"] <= 1
-next_disabled = isinstance(replies_data, dict) and (st.session_state["replies_page"] * st.session_state["replies_page_size"] >= total)
+next_disabled = isinstance(replies_data, dict) and (
+    st.session_state["replies_page"] * st.session_state["replies_page_size"] >= total
+)
 
 if nav_cols[0].button("⬅ Prev", disabled=prev_disabled):
     st.session_state["replies_page"] -= 1
