@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     db_port: int | None = None
     db_name: str | None = None
 
+    # NEW: store CA cert content (PEM) or a path
+    db_ssl_ca_pem: str | None = None
+    db_ssl_ca_path: str | None = None
+
     jwt_secret: str = "test-secret"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60
@@ -29,21 +33,14 @@ class Settings(BaseSettings):
 
     @property
     def resolved_database_url(self) -> str:
-        """
-        If DATABASE_URL is set, use it.
-        Else, build from db_* if provided.
-        Else, fall back to sqlite memory (tests).
-        """
         if self.database_url:
             return self.database_url
 
-        if all(
-            [self.db_user, self.db_password, self.db_host, self.db_port, self.db_name]
-        ):
+        if all([self.db_user, self.db_password, self.db_host, self.db_port, self.db_name]):
             password = urllib.parse.quote_plus(self.db_password)
             return (
                 f"mysql+pymysql://{self.db_user}:{password}"
-                f"@{self.db_host}:{self.db_port}/{self.db_name}?ssl=true"
+                f"@{self.db_host}:{self.db_port}/{self.db_name}"
             )
 
         return "sqlite+pysqlite:///:memory:"

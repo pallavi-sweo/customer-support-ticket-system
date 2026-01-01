@@ -1,5 +1,5 @@
 import logging
-
+from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -14,10 +14,39 @@ from app.core.decorators import db_timed
 
 logger = logging.getLogger("app.db.session")
 
+
+def _build_connect_args() -> dict:
+    """
+    Aiven requires TLS. PyMySQL needs ssl as a dict, not 'ssl=true'.
+    supports:
+      - settings.db_ssl_ca_path: a filesystem path to CA pem
+      - settings.db_ssl_ca_pem: the PEM content stored in env var
+    """
+    if not settings.resolved_database_url.startswith("mysql+pymysql://"):
+        return {}
+
+    ca_path = settings.db_ssl_ca_path
+
+    if not ca_path and settings.db_ssl_ca_pem:
+        # Write PEM into a file inside container
+        pem_file = Path("/tmp/aiven-ca.pem")
+        pem_file.write_text(settings.db_ssl_ca_pem, encoding="utf-8")
+        ca_path = str(pem_file)
+
+    if ca_path:
+        return {"ssl": {"ca": ca_path}}
+
+    # If Aiven TLS is required and we don't have CA, connection may fail.
+    # Return empty connect_args and let it error clearly.
+    return {}
+
+
 engine = create_engine(
     settings.resolved_database_url,
     pool_pre_ping=True,
+    connect_args=_build_connect_args(),
 )
+
 
 SessionLocal = sessionmaker(
     autocommit=False,
