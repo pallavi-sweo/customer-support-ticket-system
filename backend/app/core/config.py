@@ -43,7 +43,7 @@ class Settings(BaseSettings):
             password = urllib.parse.quote_plus(self.db_password)
             return (
                 f"mysql+pymysql://{self.db_user}:{password}"
-                f"@{self.db_host}:{self.db_port}/{self.db_name}"
+                f"@{self.db_host}:{self.db_port}/{self.db_name}?ssl=true"
             )
 
         return "sqlite+pysqlite:///:memory:"
