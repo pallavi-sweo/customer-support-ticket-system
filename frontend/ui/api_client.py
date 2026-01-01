@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-@dataclass(frozen=True)
+@dataclass
 class ApiError(Exception):
     status_code: int
     message: str
