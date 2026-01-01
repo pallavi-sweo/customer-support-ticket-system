@@ -17,6 +17,10 @@ class ApiError(Exception):
     code: str | None = None
     details: Any | None = None
 
+    def __post_init__(self) -> None:
+        # Ensure Exception base class is initialized properly.
+        super().__init__(self.message)
+
 
 class ApiClient:
     def __init__(self, base_url: str, token: str | None = None, timeout: int = 20):

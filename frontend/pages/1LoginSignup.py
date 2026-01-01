@@ -31,9 +31,12 @@ with tab2:
         "Password (min 8 chars)", type="password", key="signup_password"
     )
     if st.button("Signup", type="primary"):
-        try:
-            with st.spinner("Creating account..."):
-                api.signup(email=email2, password=password2)
-            st.success("Signup successful. Now login.")
-        except ApiError as err:
-            show_api_error(err)
+        if not email2.strip() or not password2 or len(password2) < 8:
+            st.error("Valid email and password (min 8 chars) are required.")
+        else:
+            try:
+                with st.spinner("Creating account..."):
+                    api.signup(email=email2, password=password2)
+                st.success("Signup successful. Now login.")
+            except ApiError as err:
+                show_api_error(err)
