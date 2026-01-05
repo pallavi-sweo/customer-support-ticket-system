@@ -1,6 +1,8 @@
+from datetime import datetime
 from sqlalchemy import DateTime, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.domain.enums import TicketPriority, TicketStatus
 from app.db.base import Base
 
 
@@ -19,17 +21,17 @@ class Ticket(Base):
 
     # Use strings for speed and MySQL compatibility; validate via Pydantic on input.
     status: Mapped[str] = mapped_column(
-        String(20), index=True, nullable=False, default="OPEN"
+        String(20), index=True, nullable=False, default=TicketStatus.OPEN
     )
     priority: Mapped[str] = mapped_column(
-        String(20), index=True, nullable=False, default="MEDIUM"
+        String(20), index=True, nullable=False, default=TicketPriority.MEDIUM
     )
 
-    created_at: Mapped[str] = mapped_column(
-        DateTime(timezone=False), server_default=func.now(), index=True
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), index=True, nullable=False
     )
-    updated_at: Mapped[str] = mapped_column(
-        DateTime(timezone=False), server_default=func.now(), onupdate=func.now()
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False
     )
 
     creator = relationship("User", back_populates="tickets")

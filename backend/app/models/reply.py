@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import DateTime, ForeignKey, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,8 +23,8 @@ class TicketReply(Base):
     )
 
     message: Mapped[str] = mapped_column(Text, nullable=False)
-    created_at: Mapped[str] = mapped_column(
-        DateTime(timezone=False), server_default=func.now(), index=True
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), index=True, nullable=False
     )
 
     ticket = relationship("Ticket", back_populates="replies")

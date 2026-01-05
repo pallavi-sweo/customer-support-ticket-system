@@ -7,7 +7,7 @@ from app.db.session import get_db
 from app.schemas.reply import ReplyCreate, ReplyOut, ReplyListOut
 from app.services.tickets import create_reply_service
 from app.crud.tickets import get_ticket
-from app.policies.tickets import ensure_can_access_ticket
+from app.policies.tickets import can_view_ticket
 from app.crud.replies import list_replies
 from app.domain.errors import NotFoundError
 
@@ -27,7 +27,7 @@ def list_replies_api(
     if not t:
         raise NotFoundError("Ticket not found")
 
-    ensure_can_access_ticket(current_user, t)
+    can_view_ticket(current_user, t)
     items, total = list_replies(db, ticket_id=ticket_id, page=page, page_size=page_size)
     return {"items": items, "total": total, "page": page, "page_size": page_size}
 
